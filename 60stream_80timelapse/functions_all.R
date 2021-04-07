@@ -1,4 +1,6 @@
 #Load the data and clean them, for each replicate (discard first frame etc)
+#' @param dir takes directory with the csv file(s) with statistics from trackmate. See example result folder to see example.
+#' @param short 
 loadCleanData <- function(dir, short, middle, streamend){
   
   library(plyr)
