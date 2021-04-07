@@ -1,0 +1,25 @@
+{
+    "id": "46A26334",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1617288700797.0,
+    "source_on_save": false,
+    "relative_order": 14,
+    "properties": {
+        "id": "efe73efc23e149d3b7b8cf8cb39320cd",
+        "name": "timeline",
+        "title": "timeline"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 94691415576136,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1617288700797,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,25 @@
+{
+    "id": "61150885",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1617288848276.0,
+    "source_on_save": false,
+    "relative_order": 16,
+    "properties": {
+        "id": "b1c808ddb03448d8af781565803a1b1d",
+        "name": "data.pca",
+        "title": "data.pca"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 6532237778313536828,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1617288848276,
+    "read_only": false,
+    "read_only_alternatives": []
+}

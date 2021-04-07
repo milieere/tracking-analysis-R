@@ -1,0 +1,32 @@
+{
+    "id": "E218D8A4",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1617029926700.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "expression": "msds_final",
+        "caption": "msds_final",
+        "totalObservations": "71393",
+        "displayedObservations": "71393",
+        "variables": "7",
+        "cacheKey": "7BCE0068",
+        "object": "msds_final",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=msds_final&cache_key=7BCE0068&max_cols=50",
+        "preview": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 4566758108544737280,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1617029926700,
+    "read_only": false,
+    "read_only_alternatives": []
+}

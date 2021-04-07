@@ -1,0 +1,188 @@
+setwd('Documents/simona/lab/micro/analysis/tracking/results')
+
+data <- loadCleanData('./', 1, 9, 20)
+data <- normMean(data)
+plot_means <- plotNormMean(data)
+plot_distr <- plotDistr(data, 1, 9, 20)
+
+#Load the data and clean them, for each replicate (discard first frame etc)
+loadCleanData <- function(dir, fps, short, middle){
+  
+  library(plyr)
+  library(dplyr)
+  library(tidyr)
+  
+  list <- list.files(dir)
+  
+  dataset <- data.frame()
+  
+  for (i in 1:length(list)){
+    if (length(list)==1){
+      temp_file <- read.csv(file=list[i], header=TRUE, sep=',', na.strings='NA', stringsAsFactors = FALSE)
+      temp_file <- cleanData(temp_file, fps, short, middle)
+      dataset <- temp_file
+    } else {
+      temp_file <- read.csv(file=list[i], header=TRUE, sep=',', na.strings='NA', stringsAsFactors = FALSE)
+      temp_file <- cleanData(temp_file, fps, short, middle)
+      temp_file$rep_no <- c(rep(substring(list[i], 1, 5), nrow(temp_file)))
+      dataset <- rbind(dataset, temp_file)
+    }
+  }
+  return(dataset)
+}
+
+
+loadData <- function(file){
+ data <- read.csv(file=file, header=TRUE, sep=',', na.strings='NA', stringsAsFactors = FALSE)
+ return(data)
+}
+
+data_03_24 <- loadData('img2.csv')
+data_03_24 <- cleanData(data_03_24)
+plots_data <- plotDistr(data_03_24, 1)
+plots_03_24
+
+cleanData <- function(results, fps, short, middle) {
+  library(plyr)
+  library(dplyr)
+  library(tidyr)
+  #Clean the data. 1. Discard tracks from first and last frame
+  removeTracks <- subset(results$TRACK_ID, results$FRAME == 0)
+  removeTracks <- append(removeTracks, subset(results$TRACK_ID, results$FRAME == results$FRAME[nrow(results)]))
+
+  filtered <- results[!(results$TRACK_ID %in% removeTracks),]
+  #Get rid of None track ID
+  filtered <- filtered %>% filter(filtered$TRACK_ID != 'None')
+  #Order by track and frame
+  filtered <- filtered[
+    order( filtered[,3], filtered[,9] ),
+  ]
+  #Put the rownames into order
+  rownames(filtered) <- 1 : length(rownames(filtered))
+  #Computes lengths of tracks
+  filtered <- ddply(filtered,.(TRACK_ID),transform,length_frames=length(SNR))
+  #Adds category for events
+  filtered$length_category <- mapply(function(x) if (x <= fps*short) 'short' else if (x <= fps*middle) 'middle' else 'long', filtered$length_frames)
+  # Filtering long and bright tracks
+  #filtered <- filtered %>% filter(length_frames < 75 & MEAN_INTENSITY < 750)
+
+  return(filtered)
+}
+
+data2 <- ddply(data2,.(TRACK_ID),transform,length_frames=length(SNR))
+
+
+#Plots distributions etc
+plotDistr <- function(clean, fps, short = 4, middle = 20){
+  library(ggplot2)
+  library(ggpubr)
+  
+  summary <- clean %>% 
+    group_by(TRACK_ID, rep_no) %>% 
+    summarize(mean_intensity = mean(MEAN_INTENSITY), length=mean(length_frames))
+  
+  #Categorize short and long
+  fun1 <- function(x) if (x <= fps*short) 'short' else if (x <= fps*middle) 'middle' else 'long'
+  summary$size <- mapply(fun1, summary$length)
+  
+  print(summary)
+  
+  #Distribution on mean intensities to check where approx cut off the extreme high values
+  intensity <- ggplot(summary, aes(x = mean_intensity)) + geom_density(aes(fill = size), alpha = 0.4) + geom_vline(aes(xintercept = mean(mean_intensity)), 
+                                          linetype = "dashed", size = 0.6)
+  
+  duration <- ggplot(summary, aes(x = length)) + geom_density(aes(fill = rep_no), alpha = 0.4) +
+    geom_vline(aes(xintercept = mean(length)), 
+               linetype = "dashed", size = 0.6)
+  
+  #Correlation of mean int and length
+  library("ggpubr")
+  
+  cor <- ggscatter(summary, x = "mean_intensity", y = "length",  
+            add = "reg.line", conf.int = TRUE, 
+            cor.coef = TRUE, cor.method = "pearson",
+            xlab = "MEAN_INTENSITY", ylab = "length_frames")
+  
+  
+  plots <- ggarrange(intensity, duration, cor, ncol=2, nrow=2)
+  return(plots)
+}
+
+
+plots <- plotDistr(data, 1)
+
+ploadCleanData()
+
+
+dataa <- cleanData(data)
+
+plotData <- function(data){
+  library(ggplot2)
+  library(ggpubr)
+  library(plyr)
+  
+  #Annotate tre tracks short <12 frames and long >12 frames
+  counts_frames_tracks <- ddply(data, .(data$TRACK_ID), nrow)
+  names(counts_frames_tracks) <- c("TRACK_ID", "LENGTH_FRAMES")
+  fun1 <- function(x) if (x <= 12) 'short' else 'long'
+  counts_frames_tracks$size <- mapply(fun1, counts_frames_tracks$LENGTH_FRAMES)
+  
+  #Plot the data
+  distr_events <- ggplot(counts_frames_tracks, mapping = aes(x = LENGTH_FRAMES, fill = size, color=000000)) + geom_histogram(bins = 30) + scale_x_continuous(breaks = seq(0, 50, 5))
+  intensity <- ggplot(data, mapping = aes(x = FRAME, y = MEAN_INTENSITY, color = TRACK_ID) ) + geom_line() + theme(legend.position = "none") 
+  timeline <- ggplot(data, mapping = aes(x = FRAME, y = TRACK_ID, color = TRACK_ID) ) + geom_point() + theme(legend.position = "none") 
+  plots <- ggarrange(timeline, distr_events, intensity, labels = c("Timeline", "Distribution of events", "Mean intensity"), font.label = list(size = 10, color = "black", family = NULL), ncol=2, nrow=2)
+  return(plots)
+}
+
+plots <- plotData(data)
+plots
+
+#Normalize the mean intensity values, make summary and plot
+normMean <- function(data){
+  library(dplyr)
+  data <- data %>% group_by(TRACK_ID, rep_no) %>% dplyr::mutate(maximum=max(MEAN_INTENSITY))
+  data <- data %>% group_by(TRACK_ID, rep_no) %>% dplyr::mutate(timepoint=1:n())
+  data$normalized_mean_int <- data$MEAN_INTENSITY / data$maximum
+  
+  return(data)
+}
+
+plotNormMean <- function(data){
+  library(dplyr)
+  library(ggplot2)
+  library(ggpubr)
+  
+  summary <- data %>% 
+    group_by(length_category, FRAME) %>% 
+    summarize(mean_intensity = mean(normalized_mean_int), sd= sd(normalized_mean_int))
+  
+  ribbonplot <- ggplot(summary, aes(FRAME, mean_intensity, group = length_category, color = length_category)) +
+    geom_line() +
+    geom_point() +
+    geom_ribbon(aes(ymax = mean_intensity + sd, ymin = mean_intensity - sd),
+                alpha = 0.15,
+                fill = "grey70",
+                colour=NA)
+  
+  summary1 <- data %>% 
+    group_by(length_category, timepoint) %>% 
+    summarize(mean_intensity = mean(normalized_mean_int), sd= sd(normalized_mean_int))
+  
+  ribbonplot1 <- ggplot(summary1, aes(timepoint, mean_intensity, group = length_category, color = length_category)) +
+    geom_line() +
+    geom_point() +
+    geom_ribbon(aes(ymax = mean_intensity + sd, ymin = mean_intensity - sd),
+                alpha = 0.15,
+                fill = "grey70",
+                colour=NA)
+  
+  plots <- ggarrange(ribbonplot, ribbonplot1, ncol = 2)
+  return(plots)
+}
+
+data$max <- aggregate(MEAN_INTENSITY ~TRACK_ID+rep_no, data=data, max, na.rm=TRUE)
+
+#PCA
+library(ggbiplot)
+ggbiplot(data.pca,ellipse=TRUE, groups=data_pca$LENGTH_CAT)
