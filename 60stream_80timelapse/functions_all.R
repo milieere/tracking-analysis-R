@@ -1,3 +1,15 @@
+
+###############################################################################################################
+###############################################################################################################
+#########  This file contains functions used for analysis of molecule tracking in exocytic            #########
+#########  events in yeast cells. The videos (60frames of stream and 80 frames) were analysed         #########
+#########  by the TrackMate plugin in ImageJ. Outputted csv files are subject to this analysis.       #########
+#########  Analysis focusing on finding the difference between exocytic events of different lengths:  #########
+#########   1. In mean intensity of the events                                                        #########
+#########   2. In MSD (dynamic behaviour) of the events                                               #########
+#########
+############################################################################################
+
 #Load the data and clean them, for each replicate (discard first frame etc)
 #' @param dir takes directory with the csv file(s) with statistics from trackmate. See example result folder to see example.
 #' @param short 
@@ -27,7 +39,7 @@ loadCleanData <- function(dir, short, middle, streamend){
 }
 
 
-cleanData <- function(results, short, middle, streamend) {
+cleanData <- function(results, short, middle, streamend, exposure) {
   library(plyr)
   library(dplyr)
   library(tidyr)
@@ -55,7 +67,7 @@ cleanData <- function(results, short, middle, streamend) {
   counts_both <- counts_both %>% rename(onefps = n.x)
   counts_both <- counts_both %>% rename(twentyfps = n.y)
   counts_both[is.na(counts_both)] = 0
-  counts_both$twentyfps <- counts_both$twentyfps*0.05
+  counts_both$twentyfps <- counts_both$twentyfps*exposure
   counts_both$duration_sec <-  counts_both$twentyfps + counts_both$onefps
   
   #JOins the counts so the data
